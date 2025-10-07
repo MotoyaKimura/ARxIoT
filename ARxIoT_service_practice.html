@@ -1,17 +1,293 @@
 <!DOCTYPE html>
 <html lang = "ja">
     <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <script src = "https://aframe.io/releases/1.0.4/aframe.min.js"></script>
         <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.min.js"></script>
+        <script src="gesture-detector.js"></script>
+        <script src="gesture-handler.js"></script>
     </head>
     <body style = 'margin:0px; overflow:hidden;'>
-        <a-scene embedded arjs>
-            <a-marker preset = "hiro">
-                <a-box position = "0 1 0" ></a-box>
-                <a-text value = "テスト" position = "0 0 0" align = "center"></a-text>
+        <a-scene embedded arjs = "trackingMethod: best; detectionMode: mono_and_matrix;"
+        
+        vr-mode-ui = "enabled: false"
+        gesture-detector
+        >
+            
+            <!-- SunCalcライブラリ -->
+            <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+            <script>
+            function formatDate(d){
+                return d ? d.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'}) : "（なし）";
+            }
+            function phaseName(f){
+                if (f < 0.03) return "新月";
+                if (f < 0.25) return "上弦前";
+                if (f < 0.27) return "上弦";
+                if (f < 0.48) return "上弦後";
+                if (f < 0.52) return "満月";
+                if (f < 0.75) return "下弦前";
+                if (f < 0.77) return "下弦";
+                return "下弦後";
+            }
+            const rad2deg = r => r * 180 / Math.PI;
+            function updateMoonInfo(lat, lon){
+                const now = new Date();
+                const timeString = now.toLocaleString('ja-JP');
+                const latitude = lat.toFixed(6);
+                const longitude = lon.toFixed(6);
+
+               
+                // 月の位置と照度
+                const mp = SunCalc.getMoonPosition(now, lat, lon);
+                const mi = SunCalc.getMoonIllumination(now);
+                // 月の出・没の時刻を取得
+                const mt = SunCalc.getMoonTimes(now, lat, lon);
+                const azDeg = rad2deg(mp.azimuth);
+                const altDeg = rad2deg(mp.altitude);
+
+                const az = azDeg.toFixed(2);
+                const alt = altDeg.toFixed(2);
+                const phase = mi.fraction.toFixed(3);
+                const phase_Name = phaseName(mi.fraction);
+                const moonRise = formatDate(mt.rise);
+                const moonSet = formatDate(mt.set);
+                
+               
+                const timeEntity = document.getElementById('time');
+                if (timeEntity) {
+                timeEntity.setAttribute("text", "value", timeString);
+                }
+                const latEntity = document.getElementById('lat');
+                if (latEntity) {
+                latEntity.setAttribute("text", "value", latitude);
+                }
+                const lonEntity = document.getElementById('lon');
+                if (lonEntity) {
+                lonEntity.setAttribute("text", "value", longitude);
+                }
+                const azEntity = document.getElementById('az');
+                if (azEntity) {
+                azEntity.setAttribute("text", "value", az);
+                }
+                const altEntity = document.getElementById('alt');
+                if (altEntity) {
+                altEntity.setAttribute("text", "value", alt);
+                }
+                const phaseEntity = document.getElementById('phase');
+                if (phaseEntity) {
+                phaseEntity.setAttribute("text", "value", phase);
+                }
+                const phaseNameEntity = document.getElementById('phaseName');
+                
+                
+                if(phase_Name === "新月"){
+                    phaseNameEntity.setAttribute("value", "新月")
+                    phaseNameEntity.setAttribute("font", "font/newMoon-msdf.json");
+                    phaseNameEntity.setAttribute("font-image", "font/newMoon-msdf.png");
+                    phaseNameEntity.setAttribute("negate", "false");
+                    phaseNameEntity.setAttribute("scale", "0.7 0.7 0.7")
+                }
+                else if(phase_Name === "上弦前"){
+                    phaseNameEntity.setAttribute("value", "上弦前")
+                    phaseNameEntity.setAttribute("font", "font/beforeFirstQuarterMoon-msdf.json");
+                    phaseNameEntity.setAttribute("font-image", "font/beforeFirstQuarterMoon-msdf.png");
+                    phaseNameEntity.setAttribute("negate", "false");
+                    phaseNameEntity.setAttribute("scale", "0.7 0.7 0.7")
+                }
+                else if(phase_Name === "上弦"){
+                    phaseNameEntity.setAttribute("value", "上弦")
+                    phaseNameEntity.setAttribute("font", "font/firstQuarterMoon-msdf.json");
+                    phaseNameEntity.setAttribute("font-image", "font/firstQuarterMoon-msdf.png");
+                    phaseNameEntity.setAttribute("negate", "false");
+                    phaseNameEntity.setAttribute("scale", "0.7 0.7 0.7")
+                }
+                else if(phase_Name === "上弦後"){
+                    phaseNameEntity.setAttribute("value", "上弦後")
+                    phaseNameEntity.setAttribute("font", "font/afterFirstQuarterMoon-msdf.json");
+                    phaseNameEntity.setAttribute("font-image", "font/afterFirstQuarterMoon-msdf.png");
+                    phaseNameEntity.setAttribute("negate", "false");
+                    phaseNameEntity.setAttribute("scale", "0.7 0.7 0.7")
+                }
+                else if(phase_Name === "満月"){
+                    phaseNameEntity.setAttribute("value", "満月")
+                    phaseNameEntity.setAttribute("font", "font/fullMoon-msdf.json");
+                    phaseNameEntity.setAttribute("font-image", "font/fullMoon-msdf.png");
+                    phaseNameEntity.setAttribute("negate", "false");
+                    phaseNameEntity.setAttribute("scale", "0.7 0.7 0.7")
+                }
+                else if(phase_Name === "下弦前"){
+                    phaseNameEntity.setAttribute("value", "下弦前")
+                    phaseNameEntity.setAttribute("font", "font/beforeLastQuarterMoon-msdf.json");
+                    phaseNameEntity.setAttribute("font-image", "font/beforeLastQuarterMoon-msdf.png");
+                    phaseNameEntity.setAttribute("negate", "false");
+                    phaseNameEntity.setAttribute("scale", "0.7 0.7 0.7")
+                }
+                else if(phase_Name === "下弦"){
+                    phaseNameEntity.setAttribute("value", "下弦")
+                    phaseNameEntity.setAttribute("font", "font/lastQuarterMoon-msdf.json");
+                    phaseNameEntity.setAttribute("font-image", "font/lastQuarterMoon-msdf.png");
+                    phaseNameEntity.setAttribute("negate", "false");
+                    phaseNameEntity.setAttribute("scale", "0.7 0.7 0.7")
+                }
+                else if(phase_Name === "下弦後"){
+                    phaseNameEntity.setAttribute("value", "下弦後")
+                    phaseNameEntity.setAttribute("font", "font/afterLastQuarterMoon-msdf.json");
+                    phaseNameEntity.setAttribute("font-image", "font/afterLastQuarterMoon-msdf.png");
+                    phaseNameEntity.setAttribute("negate", "false");
+                    phaseNameEntity.setAttribute("scale", "0.7 0.7 0.7")
+                }
+
+                const moonRiseEntity = document.getElementById('moonRise');
+                if (moonRiseEntity) {
+                moonRiseEntity.setAttribute("text", "value", moonRise);
+                }
+                const moonSetEntity = document.getElementById('moonSet');
+                if (moonSetEntity) {
+                moonSetEntity.setAttribute("text", "value", moonSet);
+                }
+            }
+            function startUpdating(){
+                if (navigator.geolocation){
+                    navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        const lat = pos.coords.latitude;
+                        const lon = pos.coords.longitude;
+                        updateMoonInfo(lat, lon);
+
+                        setInterval(() => {
+                            updateMoonInfo(lat, lon);
+                        }, 3 * 1000);
+                    },
+                    err => {
+                        document.getElementById('status').textContent = "位置情報を取得できませんでした。東京を使用します。";
+                        updateMoonInfo(35.6895, 139.6917);
+                        setInterval(() => {
+                            updateMoonInfo(lat, lon);
+                        }, 3 * 1000);
+                    },
+                    {enableHighAccuracy: false, timeout: 5000}
+                    );
+                } else {
+                    document.getElementById('status').textContent = "このブラウザは位置情報に対応していません。";
+                    updateMoonInfo(35.6895, 139.6917);
+                    setInterval(() => {
+                            updateMoonInfo(lat, lon);
+                    }, 3 * 1000);
+                }
+            }
+
+            window.onload = startUpdating;
+            </script>
+
+            <a-assets>
+                <a-asset-item id = "moon-obj" src = "the_moon/scene.gltf"></a-asset-item>
+            </a-assets>
+
+            
+            <a-marker preset = "custom" type = "pattern" url = "marker_list/moon_qrcode.patt" emitevents="true" raycaster="objects: .clickable" emitevents="true" cursor="fuse: false; rayOrigin: mouse;">
+                
+                <a-entity click_alert gltf-model = "#moon-obj" position = "0 0 0" rotation = "0 0 0" scale = "1 1 1"
+                class="clickable" gesture-handler></a-entity>
+                <a-plane position = "2.5 0.1 0" rotation = "-90 0 0" width = "2" height = "3" color = "#222222" opacity ="0.7"></a-plane>
+
+                <a-text value = "日時："
+                    font = "font/time-msdf.json"
+                    font-image = "font/time-msdf.png"
+                    negate = "false"
+                    position = "1.9 0.1 -1.4" rotation = "-90 0 0" scale = "0.7 0.7 0.7"
+                    align = "center" color = "#00FF7F">
+                </a-text>
+                <a-entity id="time" text = "value: Loading...; color: #00FF7F; align: center" 
+                position = "2.7 0.1 -1.4" rotation = "-90 0 0" scale = "2 2 2"></a-entity>
+
+                <a-text value = "緯度："
+                    font = "font/latitude-msdf.json"
+                    font-image = "font/latitude-msdf.png"
+                    negate = "false"
+                    position = "1.9 0.1 -1.1" rotation = "-90 0 0" scale = "0.7 0.7 0.7"
+                    align = "center" color = "#00FF7F">
+                </a-text>
+                <a-entity id="lat" text = "value: Loading...; color: #00FF7F; align: center" 
+                position = "2.7 0.1 -1.1" rotation = "-90 0 0" scale = "2 2 2"></a-entity>
+
+                <a-text value = "経度："
+                    font = "font/longitude-msdf.json"
+                    font-image = "font/longitude-msdf.png"
+                    negate = "false"
+                    position = "1.9 0.1 -0.8" rotation = "-90 0 0" scale = "0.7 0.7 0.7"
+                    align = "center" color = "#00FF7F">
+                </a-text>
+                <a-entity id="lon" text = "value: Loading...; color: #00FF7F; align: center" 
+                position = "2.7 0.1 -0.8" rotation = "-90 0 0" scale = "2 2 2"></a-entity>
+
+                <a-text value = "方位："
+                    font = "font/azimuth-msdf.json"
+                    font-image = "font/azimuth-msdf.png"
+                    negate = "false"
+                    position = "1.9 0.1 -0.5" rotation = "-90 0 0" scale = "0.7 0.7 0.7"
+                    align = "center" color = "#00FF7F">
+                </a-text>
+                <a-entity id="az" text = "value: Loading...; color: #00FF7F; align: center" 
+                position = "2.7 0.1 -0.5" rotation = "-90 0 0" scale = "2 2 2"></a-entity>
+
+                <a-text value = "高度："
+                    font = "font/altitude-msdf.json"
+                    font-image = "font/altitude-msdf.png"
+                    negate = "false"
+                    position = "1.9 0.1 -0.2" rotation = "-90 0 0" scale = "0.7 0.7 0.7"
+                    align = "center" color = "#00FF7F">
+                </a-text>
+                <a-entity id="alt" text = "value: Loading...; color: #00FF7F; align: center" 
+                position = "2.7 0.1 -0.2" rotation = "-90 0 0" scale = "2 2 2"></a-entity>
+
+                <a-text value = "輝面比："
+                    font = "font/phase-msdf.json"
+                    font-image = "font/phase-msdf.png"
+                    negate = "false"
+                    position = "1.9 0.1 0.1" rotation = "-90 0 0" scale = "0.7 0.7 0.7"
+                    align = "center" color = "#00FF7F">
+                </a-text>
+                <a-entity id="phase" text = "value: Loading...; color: #00FF7F; align: center" 
+                position = "2.7 0.1 0.1" rotation = "-90 0 0" scale = "2 2 2"></a-entity>
+
+                <a-text value = "月の名前："
+                    font = "font/phaseName-msdf.json"
+                    font-image = "font/phaseName-msdf.png"
+                    negate = "false"
+                    position = "1.9 0.1 0.4" rotation = "-90 0 0" scale = "0.7 0.7 0.7"
+                    align = "center" color = "#00FF7F">
+                </a-text>
+                <a-text id="phaseName" value="Loading..." color= "#00FF7F" align= "center"
+                position = "2.7 0.1 0.4" rotation = "-90 0 0" scale = "0.5 0.5 0.5"></a-text>
+
+                <a-text value = "月の出："
+                    font = "font/moonRise-msdf.json"
+                    font-image = "font/moonRise-msdf.png"
+                    negate = "false"
+                    position = "1.9 0.1 0.7" rotation = "-90 0 0" scale = "0.7 0.7 0.7"
+                    align = "center" color = "#00FF7F">
+                </a-text>
+                <a-entity id="moonRise" text = "value: Loading...; color: #00FF7F; align: center" 
+                position = "2.7 0.1 0.7" rotation = "-90 0 0" scale = "2 2 2"></a-entity>
+
+                <a-text value = "月の入り："
+                    font = "font/moonSet-msdf.json"
+                    font-image = "font/moonSet-msdf.png"
+                    negate = "false"
+                    position = "1.9 0.1 1" rotation = "-90 0 0" scale = "0.7 0.7 0.7"
+                    align = "center" color = "#00FF7F">
+                </a-text>
+                <a-entity id="moonSet" text = "value: Loading...; color: #00FF7F; align: center" 
+                position = "2.7 0.1 1" rotation = "-90 0 0" scale = "2 2 2"></a-entity>
+
             </a-marker>
 
-            <a-entity camera></a-entity>
+            
+            <a-entity camera>
+            </a-entity>
         </a-scene>
     </body>
 </html>
+
